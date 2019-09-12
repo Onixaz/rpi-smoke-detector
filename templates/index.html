@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Smoke Detector</title>
+</head>
+<body>
+  <h1>MQ2 Smoke Detector powered by Raspberry Pi</h1>
+  <canvas id="chart" width="400" height="150"></canvas>
+  <script type="text/javascript "src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  
+  <script type="text/javascript">
+ $(document).ready(function() {
+
+
+  /* Charts.Js grahps */
+    var socket = io.connect()
+
+    var ctx = document.getElementById('chart').getContext('2d')
+    var data = {
+      labels: [],
+      datasets: [{
+        data: [],
+        label: 'Smoke level (PPM)',  
+        backgroundColor: '#FF5733'
+      }]
+      
+    }
+    var optionsAnimations = { animation: false }
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: optionsAnimations,
+      
+    })
+    socket.on('readings', function (value) {
+      var length = data.labels.length
+      if (length >= 20) {
+        data.datasets[0].data.shift()
+        data.labels.shift()
+      }
+      data.labels.push(moment().format('HH:mm:ss'))
+      data.datasets[0].data.push(value.smoke_value)
+      chart.update()
+    
+    })
+
+    /* Config */
+    $('button.name').on('click', function(event) {
+        var parentId = $(this).parent().attr('id');
+        socket.emit('Changing values', {key: parentId, data: $('#'+parentId+'>input').val()});
+        return false;
+    });
+    socket.on('update value', function(msg) {
+        $('#'+msg.who).val(msg.data);
+    });
+
+
+    
+ });
+  </script>
+  <h2> Configuration </h2>
+  <h4>Alarm level threshold</h4>
+  <form  id="alarm_level_threshold">
+    <input value={{alarm_level_threshold}} type="number" step="0.01" min="0">
+    <button class="name">Set</button>
+  </form>
+  <h4>Alarm update interval (seconds)</h4>
+  <form  id="alarm_update_interval">
+    <input value={{alarm_update_interval}} type="number" step="1" min="5">
+    <button class="name">Set</button>
+  </form>
+  <h4>Sensor reading interval (seconds)</h4>
+  <form  id="sensor_reading_delay">
+    <input value={{sensor_reading_delay}} type="number" step="0.5" min="1">
+    <button class="name">Set</button>
+  </form>
+    
+</body>
+</html>

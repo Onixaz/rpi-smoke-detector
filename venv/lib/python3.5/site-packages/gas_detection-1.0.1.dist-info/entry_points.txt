@@ -1,0 +1,3 @@
+[console_scripts]
+gas-detection = gas_detection.__main__:main
+
