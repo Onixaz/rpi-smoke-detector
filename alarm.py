@@ -19,10 +19,10 @@ class Alarm:
 
     def send_email(self):
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.login("pimeros.feed@gmail.com", "jruaeyhljzctzmus")
+        server.login("YOUREMAILd@gmail.com", "YOUREMAILPASSWORD")
         server.sendmail(
-            "onixaze@gmail.com", 
-            "onixaz@gmail.com", 
+            "YOUREMAIL@EXAMPLE.COM", 
+            "YOUREMAIL@EXAMPLE.COM", 
             "!!! FIRE ALARM !!!")
         server.quit()
         
