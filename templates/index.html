@@ -58,7 +58,8 @@
         return false;
     });
     socket.on('update value', function(msg) {
-        $('#'+msg.who).val(msg.data);
+        $('#'+msg.key+'>input').val(msg.value);
+        
     });
 
 
