@@ -36,6 +36,7 @@ class Alarm:
             self.receiver_email, 
             "!!! FIRE ALARM !!!")
         server.quit()
+        print('EMAIL SENT')
         
 
 

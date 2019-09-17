@@ -39,14 +39,14 @@
       options: optionsAnimations,
       
     })
-    socket.on('readings', function (value) {
+    socket.on('readings', function (msg) {
       var length = data.labels.length
       if (length >= 20) {
         data.datasets[0].data.shift()
         data.labels.shift()
       }
       data.labels.push(moment().format('HH:mm:ss'))
-      data.datasets[0].data.push(value.smoke_value)
+      data.datasets[0].data.push(msg.value)
       chart.update()
     
     })
@@ -62,8 +62,6 @@
         
     });
 
-
-    
  });
   </script>
   <h2> Settings </h2>

@@ -41,28 +41,28 @@ def background_sensor_reading():
     while True:
         #Delay between sensor readings.       
         time.sleep(config['sensor_reading_delay'])
+        print(threading.active_count())
         #print(smoke_detector.ro)
         #Measure concentration of all gasses in ppm.                                                   
         ppm = smoke_detector.percentage()
         #Extract smoke only (you can measure other types if you wish).  
         smoke_value = ppm[smoke_detector.SMOKE_GAS]
         # Tell socketIO to push data to the client.
-        socketio.emit('readings', {'data': 'This  is data', 'smoke_value': smoke_value}) 
+        socketio.emit('readings', {'value': smoke_value}) 
         print('Current smoke value: {}'.format(smoke_value))
 
         #Additionally, when the smoke_value is above certain threshold(set by the user)
         #We tell Python to activate buzzer and send emails.  
         if smoke_value > config['alarm_level_threshold']:
                 print('!!!!!!!!!!!!!!!FIRE ALARM!!!!!!!!!!!')
-                #We use threads so the alarms won't stop our main app. 
-                beep_thread = threading.Thread(target = alarm.beep, daemon=True) 
-                beep_thread.start()
-                #Calculate how many seconds passed since last email update.
+                #We use simple threads for the different alarms so they won't block our main thread (Flask thread). 
+                beep_thread = socketio.start_background_task(target = alarm.beep) 
+                #beep_thread.start()
                 if (time.time() - last_epoch) > config['alarm_update_interval']:
                         last_epoch = time.time()
-                        email_thread = threading.Thread(target=alarm.send_email, daemon=True)
-                        email_thread.start()
-                        print('EMAIL SENT')
+                        email_thread = socketio.start_background_task(target=alarm.send_email)
+                        #email_thread.start()
+                        
 
 #Render our html.                      
 @app.route('/')
@@ -80,6 +80,7 @@ def value_change(message):
       	
 if __name__ == '__main__':
     try:
+        #SocketIO specific method to start background tasks such as loops.
         socketio.start_background_task(background_sensor_reading)
         socketio.run(app, host='0.0.0.0', use_reloader=False)
     except KeyboardInterrupt:
