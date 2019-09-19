@@ -19,7 +19,7 @@
  $(document).ready(function() {
 
 
-  /* Charts.Js grahps */
+  /* Charts.Js */
     var socket = io.connect()
 
     var ctx = document.getElementById('chart').getContext('2d')
@@ -39,6 +39,7 @@
       options: optionsAnimations,
       
     })
+    //socket.io catches message and tells Chart.js to plot this value.
     socket.on('readings', function (msg) {
       var length = data.labels.length
       if (length >= 20) {
@@ -46,7 +47,7 @@
         data.labels.shift()
       }
       data.labels.push(moment().format('HH:mm:ss'))
-      data.datasets[0].data.push(msg.value)
+      data.datasets[0].data.push(msg.value) //msg.value is actually the 'value': smoke_value from Flask
       chart.update()
     
     })
@@ -58,7 +59,7 @@
         return false;
     });
     socket.on('update value', function(msg) {
-        $('#'+msg.key+'>input').val(msg.value);
+        $('#'+msg.key+'>input').val(msg.value); 
         
     });
 

@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 
-#Required for Flask to work with Gevent. Our asynchronous framework behind Flask-SocketIO.
+
 from gevent import monkey
 monkey.patch_all() 
-
-#Import all the required modules
 import time
 import threading
 from flask import Flask, render_template
@@ -24,6 +22,7 @@ print("Starting server...")
 #you can provide your own ro value e.g smoke_detector = GasDetection(ro=4500)
  
 smoke_detector = GasDetection()
+#print(smoke_detector.ro)
 #Instantiate our own Alarm class 
 alarm = Alarm()
 
@@ -39,10 +38,10 @@ last_epoch = 0
 def background_sensor_reading():
     global last_epoch
     while True:
-        #Delay between sensor readings.       
+        #Delay between sensor readings. We use gevent's sleep instead of time.sleep()    
         time.sleep(config['sensor_reading_delay'])
-        print(threading.active_count())
-        #print(smoke_detector.ro)
+        
+        
         #Measure concentration of all gasses in ppm.                                                   
         ppm = smoke_detector.percentage()
         #Extract smoke only (you can measure other types if you wish).  
@@ -55,13 +54,13 @@ def background_sensor_reading():
         #We tell Python to activate buzzer and send emails.  
         if smoke_value > config['alarm_level_threshold']:
                 print('!!!!!!!!!!!!!!!FIRE ALARM!!!!!!!!!!!')
-                #We use simple threads for the different alarms so they won't block our main thread (Flask thread). 
-                beep_thread = socketio.start_background_task(target = alarm.beep) 
-                #beep_thread.start()
+                beep_thread = threading.Thread(target = alarm.beep)
+                beep_thread.start()
                 if (time.time() - last_epoch) > config['alarm_update_interval']:
                         last_epoch = time.time()
-                        email_thread = socketio.start_background_task(target=alarm.send_email)
-                        #email_thread.start()
+                        email_thread = threading.Thread(target=alarm.send_email)
+                        email_thread.start()
+                        
                         
 
 #Render our html.                      
@@ -80,11 +79,12 @@ def value_change(message):
       	
 if __name__ == '__main__':
     try:
-        #SocketIO specific method to start background tasks such as loops.
+
         socketio.start_background_task(background_sensor_reading)
         socketio.run(app, host='0.0.0.0', use_reloader=False)
     except KeyboardInterrupt:
-        print("Closing server")
+
+        print("Closing server...")
         alarm.cleanup()
     
     
