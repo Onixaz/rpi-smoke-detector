@@ -1,5 +1,5 @@
 # rpi-smoke-detector
-Smoke Detector built with Raspberry Pi using MQ2.
+Smoke Detector built with Raspberry Pi using MQ2 Gas Sensor.
 
 Flask with Flask-SocketIO in the backend and Charts.js in the frontend. 
 
